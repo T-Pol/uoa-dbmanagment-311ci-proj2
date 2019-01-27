@@ -1,0 +1,151 @@
+------query1------
+
+db.data.aggregate( [
+	{ $match: {"Creation_Date":{"$gte":ISODate("2018-11-05"), "$lte": ISODate("2018-11-07")}} },
+	{
+		$group: {
+			_id: "$Type_of_Service_Request",
+			count: { $sum: 1 }
+				}
+    },
+	{$sort:{count:-1}}
+] )
+
+
+------query2-------
+
+db.data.aggregate( [
+	{ $match: { $and: [{"Creation_Date":{"$gte":ISODate("2018-11-05"), "$lte": ISODate("2018-11-07")}},{"Type_of_Service_Request":"Graffiti Removal"}]}},
+	{
+		$group: {
+			_id: "$Creation_Date",
+			count: { $sum: 1 }
+				}
+    }
+] )
+
+
+------query3--------
+
+
+
+------query4--------
+
+db.data.aggregate([
+	{$match: { $and:[{"Ward":{$ne:""}},{Type_of_Service_Request: "Abandoned Vehicle Complaint"}]}},
+	{$group: { _id: "$Ward", count: {$sum: 1}}},
+	{$sort: {"count": 1}},
+	{$limit: 3}
+])
+
+
+
+------query5--------
+
+
+db.data.aggregate( [
+	{ $match: { $and: [{"Completion_Date":{$ne:null}},{"Creation_Date":{"$gte":ISODate("2018-11-04 00:00:00+02"), "$lte": ISODate("2018-11-07 00:00:00+02")}}]}},
+	{
+		$group: {
+			_id: "$Type_of_Service_Request",
+			avg_seconds: { $avg: {$divide: [{$subtract:["$Completion_Date","$Creation_Date"]}, 1000]}}
+				}
+    }
+] )
+
+------query6--------
+
+
+
+db.data.aggregate( [
+	{ $match: { $and: [{"Creation_Date":{"$eq":ISODate("2010-09-25")}},
+		{
+			Location_Point:{ $geoWithin:{$polygon:[
+					
+						[
+						-92.168946,
+						39.826815
+						],
+						[
+						-85.828476,
+						39.826815
+						],
+						[
+						-85.828476,
+						42.208679
+						],
+						[
+						-92.168946,
+						42.208679
+						],
+						[
+						-92.168946,
+						39.826815
+						]
+					
+				]}}
+		}
+	]}},
+	{
+		$group: {
+			_id: "$Type_of_Service_Request",
+			count: { $sum: 1 }
+				}
+    },
+	{$sort:{count:-1}},
+	{$limit:1}
+] )
+
+
+-----query7------
+
+db.data.aggregate([ { $match: {"Creation_Date":{"$eq":ISODate("2010-09-25")}}},
+{$project:{"total":{$size:"$upvotes"}}},
+{$sort:{"total":-1}},
+{$limit:50} ])
+
+
+-----query8------
+
+db.citizen.aggregate([
+{$project:{"Name":"$name","Surname":"$surname","total":{$size:"$votes"}}},
+{$sort:{"total":-1}}
+])
+
+-----query9------
+
+
+db.data.aggregate([
+{$unwind:"$upvotes"},
+{$group: {_id: {"voter":"upvotes","ward":"$Ward"},cnt: {$sum:1}}},
+{$group: {_id:"$_id.voter", cnt:{$sum:1}}},
+{$limit:50}   
+])
+
+
+
+
+-----query10-----
+
+-----query11-----
+
+db.data.aggregate(
+[
+	{$unwind: "$upvotes"},
+	{
+		$lookup:
+		{
+			from: "citizen",
+			pipeline:[
+						{$match:{ $and: [{"name":"SpongeBob"},{"surname":"SquarePants"}]}},
+						{$project:{_id:1}}
+			],
+			as:"citidata"
+		}
+	},
+	
+	{$unwind:"$citidata"},
+	{$match:{"citidata._id":"upvotes"}}
+
+]
+)
