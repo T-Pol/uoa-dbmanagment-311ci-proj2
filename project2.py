@@ -365,6 +365,23 @@ def query3():
     	res={'Error':'You probably entered wrong data!',"Help":"Enter any date in any format like YYYY-MM-DD HH:MM:SS"}
         return jsonify(res),400,{'Content-Type': 'application/json; charset=utf-8'}
 
+@app.route('/query10',methods=['GET'])
+def query10():
+    try:
+        reqjson=request.get_json()
+        telephone=reqjson['telephone']
+        pipeline=[
+                    {"$unwind": "$votes"},
+                    {"$match":{"telephone":telephone}},
+                    {"$group":{"_id":"$votes","cnt":{"$sum":1}}},
+                    {"$match":{"cnt":{"$gt":1}}}
+                ]
+        data=db.citizen.aggregate(pipeline)
+        return dumps({"Result":data}),200,{'Content-Type': 'application/json; charset=utf-8'}
+    except:
+        res={'Error':'wrong data!'}
+        return jsonify(res),400,{'Content-Type': 'application/json; charset=utf-8'}
+
 
 
 if __name__ == '__main__':
