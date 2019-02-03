@@ -347,5 +347,25 @@ def query9():
     data = db.data.aggregate(pipeline)
     return dumps({"result":data}),200,{'Content-Type': 'application/json; charset=utf-8'}
 
+
+@app.route('/query3',methods=['GET'])
+def query3():
+    try:
+        reqjson=request.get_json()
+        creation_date=dateutil.parser.parse(reqjson['Creation_Date'])
+        pipeline=[
+                {"$match":{"Creation_Date":creation_date}},
+                {"$group":{"_id":{"zipcode":"$ZIP_Code", "typeofrequest":"$Type_of_Service_Request"},"count":{"$sum":1}}},
+                {"$sort":{"zipcode":-1,"count":-1}},
+                {"$limit": 3}
+                ]
+        data=db.data.aggregate(pipeline)
+        return dumps({"Result":data}),200,{'Content-Type': 'application/json; charset=utf-8'}
+    except:
+    	res={'Error':'You probably entered wrong data!',"Help":"Enter any date in any format like YYYY-MM-DD HH:MM:SS"}
+        return jsonify(res),400,{'Content-Type': 'application/json; charset=utf-8'}
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
