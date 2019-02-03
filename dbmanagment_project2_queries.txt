@@ -27,7 +27,12 @@ db.data.aggregate( [
 
 ------query3--------
 
-
+db.data.aggregate([
+{$match:{"Creation_Date":ISODate("2018-11-05")}},
+{$group:{_id:{zipcode:"$ZIP_Code", typeofrequest:"$Type_of_Service_Request"},count:{$sum:1}}},
+{$sort:{zipcode:-1,count:-1}},
+{$limit: 3}
+])
 
 ------query4--------
 
