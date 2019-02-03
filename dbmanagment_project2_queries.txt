@@ -132,6 +132,15 @@ db.data.aggregate([
 
 -----query10-----
 
+db.citizen.aggregate(
+[
+	{$unwind: "$votes"},
+	{$match:{"telephone":"123-456-789"}},
+	{$group:{_id:"$votes",cnt:{$sum:1}}},
+	{$match:{"cnt":{$gt:1}}}
+]
+)
+
 -----query11-----
 
 db.data.aggregate(
